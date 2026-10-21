@@ -13,29 +13,6 @@ function pbi-test (
         # Write-Host -ForegroundColor DarkGray ">> $text"
     }
     
-    function Console-Print (
-        [string[]] $strings,
-        [switch] $NoNewLine
-
-    ) {
-        # colour formatting on multiple Write-Host commands
-        $strings |
-            ForEach-Object {
-                $text = $_.split('#')[0]
-                $colour = $_.split('#')[1]
-                
-                if ($null -ne $colour) {
-                    Write-Host $text -NoNewline -ForegroundColor $colour
-                } else {
-                    Write-Host $text -NoNewline
-                }
-            }
-    
-        if (!$NoNewLine) {
-            Write-Host "" # end with a newline
-        }
-    }
-    
     [List[PSCustomObject]] $results = @()
     $filepath = ".\*.CodeFiles\tests\visuals.json"
 
@@ -45,8 +22,6 @@ function pbi-test (
     }
 
     $tests = Read-Json $filepath
-
-    
     
     $indent = "  "
     
@@ -55,7 +30,7 @@ function pbi-test (
             $testName = $_.name
             # identify the test that is being run
     
-            Console-Print "`nRunning test ", "$($_.name)#Yellow"
+            Write-SpectreHost "`nRunning test [yellow]$($_.name)[/]"
             Console-Log "Running through all pages..."
     
             $coordinates = $_.coordinates
@@ -67,7 +42,7 @@ function pbi-test (
                     # one page
                     $page = $_.page.id
                     $pageName = $_.page.name
-                    Console-Print "Checking page ", "$pageName...#yellow"
+                    Write-SpectreHost "Checking page [yellow]$pageName...[/]"
     
                     # go through all objects
                     Console-Log "Going through all objects..."
@@ -87,7 +62,7 @@ function pbi-test (
                             $objectType = $visual.visual.visualType
                             $objectName = $visual.visual.visualContainerObjects.title[0].properties.text.expr.Literal.Value
     
-                            Console-Print "$indent Checking $objectType ", "$objectName#Yellow"
+                            Write-SpectreHost "$indent Checking $objectType [yellow]$objectName[/]"
                             
                             $assertions |
                                 ForEach-Object {
@@ -96,8 +71,8 @@ function pbi-test (
                                     $result = & $sb
                                     
                                     Write-Host "$indent$indent" -NoNewline
-                                    if ($result) { Console-Print '✅#Green' -NoNewLine
-                                    } else { Console-Print '❌#Red' -NoNewLine }
+                                    if ($result) { Write-SpectreHost '[green]✅[/]' -NoNewline
+                                    } else { Write-SpectreHost '[red]❌[/]' -NoNewLine }
                                     Write-Host " $($_.description)" 
 
                                     # return this object is PassThru explicitly specified
