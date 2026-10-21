@@ -1,33 +1,15 @@
-function gitBranch {
-    if (Test-Path .git) {
-        if ($null -eq (git branch)) {
-            # this is if the repo had just been initialised, and there are no branches
-            $currentBranch =  "~"
-        } else {
-            $currentBranch = ((git branch) | ? { $_.StartsWith('*') } )
-            $currentBranch = if ($currentBranch.contains('master') ) {
-                $currentBranch.replace('*','🪵')
-            } else {
-                $currentBranch.replace('*', '🌿')
-            }
-        }
-
-        Write-Host "[$currentBranch]" -ForegroundColor Green
-    }
-}
-
 function currentlyWorkingOn {
     $currentTask = (Get-Content $env:ttfile) | 
         Select-Object -Last 1 | # this is possible because source file is in NDJSON
         ConvertFrom-Json
 
-    $currentTaskName = $currentTask.name
-    $currentTaskStart = $currentTask.start
-    $currentTaskEnd = $currentTask.end
+    $currentTaskName    = $currentTask.name
+    $currentTaskStart   = $currentTask.start
+    $currentTaskEnd     = $currentTask.end
 
-    $duration = ((Get-Date) - (Get-Date $currentTaskStart))
-    $hours = $duration.Hours
-    $minutes = $duration.Minutes
+    $duration   = ((Get-Date) - (Get-Date $currentTaskStart))
+    $hours      = $duration.Hours
+    $minutes    = $duration.Minutes
 
     $currentlyWorking = $null -eq ($currentTaskEnd)
     
@@ -38,7 +20,7 @@ function currentlyWorkingOn {
     }                       # if less than 1 hour, then don't mention it
 
     if ($currentlyWorking) {
-        Write-Host "On: $currentTaskName ($hoursText$minutes minutes)`n" -ForegroundColor Red
+        Write-Host "On: $currentTaskName ($hoursText$minutes minutes)" -ForegroundColor Red
     }
 }
 
@@ -58,7 +40,7 @@ function virtualDesktopNameNNL {
     catch { '' }
 
     if (($virtualDesktop) -ne '') {
-        Write-Host "|$((virtualDesktop).ToUpper())| "  -ForegroundColor DarkGray  -NoNewline
+        Write-Host "|$($virtualDesktop.ToUpper())| "  -ForegroundColor DarkGray  -NoNewline
     }
 }
 
@@ -77,7 +59,8 @@ function projecttypeNNL {
     $ispbipfolder = ((dir *.pbip).Count -gt 0)
     
     if ($ispbipfolder) { 
-        Write-Host "[pbip] " -ForegroundColor Yellow -NoNewline 
+        # Write-Host "[pbip] " -ForegroundColor Yellow -NoNewline 
+        Write-Host "🟨 " -ForegroundColor Yellow -NoNewline 
     }
 
     $issqlfolder = if ((Test-Path '.\.vscode\settings.json')) {
@@ -85,9 +68,31 @@ function projecttypeNNL {
     } else {$null}
     
     if ($issqlfolder) { 
-        Write-Host "[sql] " -ForegroundColor Magenta -NoNewline 
+        # Write-Host "[sql] " -ForegroundColor Magenta -NoNewline 
+        Write-Host "🟪 " -ForegroundColor Magenta -NoNewline 
     }
     
+}
+
+function gitBranch {
+    if (Test-Path .git) {
+        if ($null -eq (git branch)) {
+            # this is if the repo had just been initialised, and there are no branches
+            $currentBranch =  "~"
+        } else {
+            $currentBranch = ((git branch) | ? { $_.StartsWith('*') } )
+            $currentBranch = if ($currentBranch.contains('master') ) {
+                # $currentBranch.replace('*','🪵')
+                $currentBranch.replace('*','🡹').replace('master', '')
+                # write-host '🢰 master' -ForegroundColor Green
+            } else {
+                # $currentBranch.replace('*', '🌿')
+                $currentBranch.replace('*', '🢰')
+            }
+        }
+
+        Write-Host "[$currentBranch]" -ForegroundColor Green -NoNewline
+    }
 }
 
 function promptOutput {
@@ -95,7 +100,6 @@ function promptOutput {
 
     $promptColour = switch ($global:mode) {
         'work' { 'Cyan' }
-        # 'wwa' { 'DarkYellow' }
         'home' { 'Magenta' }
     }
 
@@ -103,13 +107,13 @@ function promptOutput {
 
     timestamp $promptColour
     currentlyWorkingOn
-    
+    Write-Host "`n"
     virtualDesktopNameNNL
     currentDirectoryNNL $promptColour
     projecttypeNNL
     
     gitBranch
-    "> "
+    "`n> "
 }
 
 Export-ModuleMember promptOutput
