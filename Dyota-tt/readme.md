@@ -1,0 +1,1 @@
+Simple time tracking system, inspired by Python `tt`. 
