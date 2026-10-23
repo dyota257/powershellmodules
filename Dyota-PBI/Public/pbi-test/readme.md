@@ -108,8 +108,33 @@ Here is a generic explanation of each of the fields:
 ]
 ```
 
+### Report-level tests
+
+To assert something about the report as a whole (not a specific page or visual), set `"scope": "report"` and leave out `coordinates`. The assertions run once against `definition\report.json`, which is available as `$target`.
+
+```json
+{
+    "name": "Filter pane is visible and collapsed",
+    "scope": "report",
+    "assertions": [
+        {
+            "description": "Filter pane visible",
+            "code": ["$target.objects.outspacePane[0].properties.visible.expr.Literal.Value -eq 'true'"]
+        },
+        {
+            "description": "Filter pane collapsed",
+            "code": ["$target.objects.outspacePane[0].properties.expanded.expr.Literal.Value -eq 'false'"]
+        }
+    ]
+}
+```
+
+`scope` is optional. If you leave it out, the test is a visual test (the `coordinates` format above). In visual tests `$target` is the parsed `visual.json`. The older name `$visual` still works.
+
+`code` can be a single string or an array of strings (joined together).
+
 ## Test Runner
-The PowerShell script that runs this will look for the `visuals.json` in the `\tests` folder. 
+The PowerShell script that runs this will look for the `visuals.json` in the `\tests` folder. With `-PassThru`, each result has a `Scope` (`visual` or `report`); `PageId`, `VisualId` etc. are blank for report tests. The listing below is the original version and doesn't show the `scope` handling; see `pbi-test.ps1` for the current code.
 
 The script prints out results in the console, and it also passes a data object if `-PassThru` is specified. This is to that other functions downstream can pick up on the test results. 
 

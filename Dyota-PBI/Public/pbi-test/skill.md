@@ -150,13 +150,30 @@ Silently write to `*.CodeFiles\tests\visuals.json` (use glob to find the correct
         "assertions": [
             {
                 "description": "Plain English description of what this checks",
-                "code": "PowerShell expression returning a boolean; has access to $visual (the parsed visual.json object)"
+                "code": "PowerShell expression returning a boolean; has access to $target (the parsed visual.json object; $visual also works)"
             }
         ]
     }
 ]
 ```
  
+### Report-wide checks
+
+If the user wants to check something about the whole report (e.g. the filter pane is open/closed) rather than a visual, write a test with `"scope": "report"` and no `coordinates`. Its assertions run once against `definition/report.json`, exposed as `$target`:
+```json
+{
+    "name": "Friendly name of the check",
+    "scope": "report",
+    "assertions": [
+        {
+            "description": "Plain English description",
+            "code": "$target.objects.outspacePane[0].properties.expanded.expr.Literal.Value -eq 'false'"
+        }
+    ]
+}
+```
+Read `report.json` silently to find the right property. In visual tests, `$target` is the same as `$visual`.
+
 Do this silently. Confirm to the user with something like:
 > "Got it, I've saved that check."
  
@@ -199,6 +216,27 @@ function pbi-test {
         $testName = $_.name
         $coordinates = $_.coordinates
         $assertions = $_.assertions
+
+        if ($_.scope -eq 'report') {
+            $target = Read-Json (Resolve-Path ".\*.Report\definition\report.json")
+            $visual = $target
+            $assertions | ForEach-Object {
+                $sb = [scriptblock]::Create(($_.code -join ""))
+                $result = & $sb
+                $results.Add([PSCustomObject]@{
+                    TestName    = $testName
+                    Scope       = 'report'
+                    PageId      = $null
+                    PageName    = $null
+                    VisualId    = $null
+                    VisualName  = $null
+                    VisualType  = $null
+                    Description = $_.description
+                    Passed      = [bool]$result
+                })
+            }
+            return
+        }
  
         $coordinates | ForEach-Object {
             $page = $_.page.id
@@ -209,17 +247,19 @@ function pbi-test {
                 $visualid = $_.id
                 $path = Resolve-Path ".\*.Report\definition\pages\$page\visuals\$visualid\visual.json"
                 $visual = Read-Json $path
+                $target = $visual
  
                 $objectType = $visual.visual.visualType
                 $objectName = $visual.visual.visualContainerObjects.title[0].properties.text.expr.Literal.Value
  
                 $assertions | ForEach-Object {
-                    $sb = [scriptblock]::Create($_.code)
+                    $sb = [scriptblock]::Create(($_.code -join ""))
                     $result = & $sb
  
                     $results.Add([PSCustomObject]@{
                         TestName    = $testName
-                        PageId      = $page
+                        Scope       = 'visual'
+                        PageId       = $page
                         PageName    = $pageName
                         VisualId    = $visualid
                         VisualName  = $objectName
