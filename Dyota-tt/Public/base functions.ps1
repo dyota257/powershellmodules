@@ -52,13 +52,18 @@ function tt-start {
         Write-Host  You are still working on `"$($lasttask.name)`". Finish this one before starting another task. 
         break
     }
-
-    $client = Read-SpectreText -Message 'Client: '
-    $project = Read-SpectreText -Message 'Project: '
-    $name = Read-SpectreText -Message 'Task: '
-    $role = Read-SpectreText -Message 'Role:' -DefaultAnswer 'bi'
-
     else {
+
+        $client = Read-SpectreText -Message 'Client: ' -DefaultAnswer 'iCatalyst'
+        $project = Read-SpectreText -Message 'Project: '
+        
+        while ([string]::IsNullOrEmpty($name)) {
+            # stay on this until the name is filled out
+            $name = Read-SpectreText -Message 'Task: '
+        }
+        
+        $role = Read-SpectreText -Message 'Role:' -DefaultAnswer 'bi'
+
         # if the new task doesn't have a name, prompt for a name and break
         if (($null -eq $name -or ($name.length -eq 0))) {
             Write-Host  "You need a name for your new task"

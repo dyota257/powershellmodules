@@ -21,8 +21,9 @@ $PublicFunctions = @(Get-ChildItem -Path $PSScriptRoot\Public\*.ps1 -Recurse -Er
 foreach ($import in $PublicFunctions) {
     try {
         . $import.FullName
+        $displayName = $import.FullName -replace '.*ModulesPersonal\\', ''
 
-        Write-Host "Imported $($import.FullName)"
+        Write-SpectreHost "Imported [cyan]$displayName[/]"
     }
     catch {
         Write-Error -Message "Failed to import public function $($import.FullName): $_"
