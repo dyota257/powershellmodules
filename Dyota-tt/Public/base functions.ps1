@@ -54,15 +54,18 @@ function tt-start {
     }
     else {
 
-        $client = Read-SpectreText -Message 'Client: ' -DefaultAnswer 'iCatalyst'
-        $project = Read-SpectreText -Message 'Project: '
+        while ([string]::IsNullOrEmpty($client)) { $client = Read-SpectreText -Message 'Client: ' -DefaultAnswer 'iCatalyst' }
+        while ([string]::IsNullOrEmpty($project)) { $project = Read-SpectreText -Message 'Project: ' }
+        
+        
         
         while ([string]::IsNullOrEmpty($name)) {
             # stay on this until the name is filled out
             $name = Read-SpectreText -Message 'Task: '
         }
+        while ([string]::IsNullOrEmpty($role)) {$role = Read-SpectreText -Message 'Role:' -DefaultAnswer 'bi'}
         
-        $role = Read-SpectreText -Message 'Role:' -DefaultAnswer 'bi'
+        
 
         # if the new task doesn't have a name, prompt for a name and break
         if (($null -eq $name -or ($name.length -eq 0))) {
@@ -123,9 +126,12 @@ function tt-end ([string] $note) {
     tt-hours
 }
 
-function tt-edit {
-    nvim $env:ttfile
-    # visidata $env:ttfile
+function tt-edit ([switch] $vd){
+    if ($vd) {
+        visidata $env:ttfile
+    } else {
+        nvim $env:ttfile
+    }
 }
 
 Export-ModuleMember @(

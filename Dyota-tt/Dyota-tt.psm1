@@ -30,5 +30,12 @@ foreach ($import in $PublicFunctions) {
     }
 }
 
+# Set aliases
+Set-Alias tts tt-start
+Set-Alias ttn tt-end
+Set-Alias tte tt-edit
+Set-Alias tta tt-again
 # Export public functions
-Export-ModuleMember -Function $PublicFunctions.BaseName
+
+Export-ModuleMember -Function $PublicFunctions.BaseName -Alias @( 'tts', 'ttn', 'tte', 'tta' )
+

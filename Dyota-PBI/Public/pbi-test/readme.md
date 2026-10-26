@@ -10,6 +10,16 @@ This method assumes that you're working in PBIP, and using the new PBIR format f
 
 The test spec document needs to live in `.\*.CodeFiles\tests\visuals.json`.
 
+## Relationship tests
+
+`.\*.CodeFiles\tests\relationships.json` is an array of strings, each the TMDL text of one relationship pasted from `relationships.tmdl` (the `relationship <guid>` header is optional and ignored):
+
+```json
+["fromColumn: PurchLine.'Company PurchID Key'\ntoColumn: PurchTable.'Company PurchID Key'"]
+```
+
+The model is deserialised (`Get-PbiModel`) and the relationship is matched by from/to column. Property order doesn't matter, but the properties must be exactly those listed, apart from TMDL defaults (`isActive: true`, single direction, many-to-one etc.), which can be omitted. Extra or differing properties, or a missing relationship, fail. Results have `Scope = 'relationship'`.
+
 Here is an example of a test. In this test, on two pages, Project Budgets (A) and Project Budgets (B), I want to make sure that the "Project Number" table visual column is reading from the `Project.ProjectNo` data table column, not `Timesheets.ProjectNo`. Let's say that this was something that I had fixed up in a previous version of the Power BI file ~~that I want to prevent from happening again~~ and I want to know if I'm about to reintroduce it. 
 
 ```json

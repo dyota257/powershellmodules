@@ -40,7 +40,7 @@ function virtualDesktopNameNNL {
     catch { '' }
 
     if (($virtualDesktop) -ne '') {
-        Write-Host "|$($virtualDesktop.ToUpper())| "  -ForegroundColor DarkGray  -NoNewline
+        Write-Host "|$($virtualDesktop.ToUpper())| "  -ForegroundColor Blue  -NoNewline
     }
 }
 

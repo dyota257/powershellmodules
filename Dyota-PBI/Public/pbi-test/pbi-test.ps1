@@ -53,73 +53,25 @@ function pbi-test (
             }
     }
 
-    [List[PSCustomObject]] $results = @()
-    $filepath = ".\*.CodeFiles\tests\visuals.json"
-
-    if (!(Test-Path $filepath)) {
-        Write-Host "No test files found, skipping..."
-        return;
+    function Write-Outcome ($passed, $description) {
+        $description = $description.replace('[', '[[').replace(']', ']]')
+        if ($passed) {
+            Print-Verbose "$indent$indent [green]✅[/] $description"
+        } else {
+            Write-SpectreHost "$indent$indent [red]❌[/] $description"
+        }
     }
 
-    $tests = Read-Json $filepath
-    
+    [List[PSCustomObject]] $results = @()
     $indent = "  "
-    
-    $tests |
-        ForEach-Object {
-            $testName = $_.name
-            # identify the test that is being run
-    
-            Print-Verbose "`nRunning test [yellow]$($_.name)[/]"
-            Console-Log "Running through all pages..."
-    
-            $coordinates = $_.coordinates
-    
-            $assertions = $_.assertions
 
-            # report-wide test: target is report.json, no coordinates
-            if ($_.scope -eq 'report') {
-                $reportPath = Resolve-Path ".\*.Report\definition\report.json" -ErrorAction SilentlyContinue
-                if (!$reportPath) {
-                    Write-SpectreHost "[red]report.json not found[/]"
-                    return
-                }
-                Print-Verbose "Checking [yellow]report[/]"
-                Invoke-Assertions $assertions (Read-Json $reportPath) $testName 'report' $null $null $null $null $null
-                return
-            }
-    
-            $coordinates |
-                ForEach-Object {
-                    # one page
-                    $page = $_.page.id
-                    $pageName = $_.page.name
-                    Print-Verbose "Checking page [yellow]$pageName...[/]"
-    
-                    # go through all objects
-                    Console-Log "Going through all objects..."
-                    
-                    $objects = $_.objects
-    
-                    $objects | 
-                        ForEach-Object {
-    
-                            $visualid = $_.id
-                            Console-Log "Going through all objects..."
-                            $path = ".\*.Report\definition\pages\$page\visuals\$visualid\visual.json"
-                            
-                            $visual = Read-Json $path
-                            
-                            # visual type and name propeerties based on a tableEx
-                            $objectType = $visual.visual.visualType
-                            $objectName = $visual.visual.visualContainerObjects.title[0].properties.text.expr.Literal.Value
-    
-                            Print-Verbose "$indent Checking $objectType [yellow]$objectName[/]"
-                            
-                            Invoke-Assertions $assertions $visual $testName 'visual' $page $pageName $visualid $objectName $objectType
-                        }
-                }
-        }
+    $ranVisuals = Test-Visuals
+    $ranRelationships = Test-Relationships
+
+    if (!$ranVisuals -and !$ranRelationships) {
+        Write-Host "No test files found, skipping..."
+        return
+    }
 
     if ($results.Count -gt 0 -and !$results.Where({ !$_.Passed }).Count) {
         Write-SpectreHost "`npbi-test: [green]✅ all tests passed[/]"
