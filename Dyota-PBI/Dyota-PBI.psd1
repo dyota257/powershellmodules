@@ -40,6 +40,7 @@
         'pbi-setComponents'
         'pbip'
         'pbi-publish'
+        'pbi-refresh'
         'pbi-setup'
         'pbi-watch'
         'watch'
