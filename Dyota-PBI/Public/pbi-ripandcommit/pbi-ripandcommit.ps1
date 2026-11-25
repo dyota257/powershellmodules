@@ -1,9 +1,11 @@
 function pbi-ripandcommit (
     [Parameter(Mandatory)]
-    [string] $comment
+    [string] $comment,
+    # also run data tests (tests\data) against Power BI Desktop before committing; see rnct
+    [switch] $Test
 ) {
     if ($null -ne $comment) {
-        $testResults = pbi-test -PassThru
+        $testResults = pbi-test -PassThru -Data:$Test
 
         if ( 
             ($testResults.Where({ !($_.Passed) }).Count -eq 0 ) -or

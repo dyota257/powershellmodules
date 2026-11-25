@@ -23,7 +23,7 @@ foreach ($import in $PublicFunctions) {
         . $import.FullName
         $displayName = $import.FullName -replace '.*ModulesPersonal\\', ''
 
-        Write-SpectreHost "Imported [cyan]$displayName[/]"
+        # Write-SpectreHost "Imported [cyan]$displayName[/]"
     }
     catch {
         Write-Error -Message "Failed to import public function $($import.FullName): $_"

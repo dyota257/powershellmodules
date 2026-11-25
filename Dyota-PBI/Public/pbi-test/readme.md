@@ -139,9 +139,41 @@ To assert something about the report as a whole (not a specific page or visual),
 }
 ```
 
+### Page-level tests
+
+Set `"scope": "page"` and list the pages in `coordinates` (no `objects`). The assertions run once per page against that page's `page.json` (`$target`); `$pagePath` is the page folder, so assertions can also read its visuals.
+
 `scope` is optional. If you leave it out, the test is a visual test (the `coordinates` format above). In visual tests `$target` is the parsed `visual.json`. The older name `$visual` still works.
 
 `code` can be a single string or an array of strings (joined together).
+
+## Data tests
+`pbi-test -Data` also checks numbers in the model. Each case is a folder under `*.CodeFiles\tests\data\<case>\` containing:
+
+- `query.dax`: a DAX table expression, or a full query starting with `DEFINE`/`EVALUATE`. `EVALUATE` is added if it's missing.
+- `reference.csv`: the expected baseline. Rows are matched on the **first column** against the first column of the query output. Every other column whose header matches an output column (ignoring a `Table[...]` prefix) and whose cell is numeric gets compared. Blank or text cells aren't compared.
+- `tolerance.txt` (optional): a single number. The default tolerance is 0.01, or 0.5 when every expected number is whole.
+
+A case fails if the query errors, returns no rows, is missing an expected row, has a value outside tolerance, or has no comparable cells. Folders without both files are skipped. Query values are compared as invariant-culture text, and dates come back as `yyyy-MM-ddTHH:mm:ss`. If you need to key on a date, `FORMAT` it in the query.
+
+On failure, the full query output (all rows and columns, with the original query headers) is saved beside the reference as `actual yyyy-MM-dd_HHmm.csv`, using local 24-hour time. Repeated failures in the same minute add ` (2)`, ` (3)`, etc. before `.csv`, preserving earlier results. Successful runs write nothing and leave earlier failure files alone. An empty query result produces an empty CSV; a query that throws has no completed output to save. File-write errors are reported as part of the failure. The reference is never overwritten.
+
+Legacy `result.csv` and `results.csv` baselines still work with a rename warning when `reference.csv` is absent.
+
+Where the tests run:
+
+| Command | Target |
+|---|---|
+| `pbi-test -Data` | Power BI Desktop. Picks the instance whose title matches the `.pbip`, or the only one open, otherwise asks. `-Port` overrides. |
+| `pbi-test -Data -Workspace` | Published model from `structure.json`, via the `executeQueries` REST API |
+| `pnrt` / `pnr -Test` | Publishes the model, refreshes it, then runs the tests in the refresh window. ✔ only if the refresh and all tests pass. |
+| `rnct` / `rnc -Test` | Desktop. Any failure blocks the rip and commit. |
+
+`-Filter` limits which cases run, matched against the folder name (`pbi-test -Data -Filter 'PnL*'`).
+
+Service runs need the **Dataset Execute Queries REST API** tenant setting (Admin portal > Tenant settings > Integration settings). If it's off, every case fails with `PowerBIFeatureDisabled`.
+
+Pin cases to closed periods (e.g. a past month-end), so a refresh doesn't change the expected numbers.
 
 ## Test Runner
 The PowerShell script that runs this will look for the `visuals.json` in the `\tests` folder. With `-PassThru`, each result has a `Scope` (`visual` or `report`); `PageId`, `VisualId` etc. are blank for report tests. The listing below is the original version and doesn't show the `scope` handling; see `pbi-test.ps1` for the current code.

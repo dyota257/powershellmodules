@@ -2,7 +2,12 @@ using namespace System.Collections.Generic
 
 function pbi-test (
     [switch] $PassThru,
-    [switch] $verbose
+    [switch] $verbose,
+    # also run data tests (tests\data\<case>\query.dax + reference.csv) against Desktop, or the published model with -Workspace
+    [switch] $Data,
+    [string] $Filter = '*',
+    [int] $Port,
+    [switch] $Workspace
 ){
 
     function Read-Json ($path) {
@@ -67,8 +72,9 @@ function pbi-test (
 
     $ranVisuals = Test-Visuals
     $ranRelationships = Test-Relationships
+    $ranData = if ($Data) { Test-Data -Filter $Filter -Port $Port -Workspace:$Workspace }
 
-    if (!$ranVisuals -and !$ranRelationships) {
+    if (!$ranVisuals -and !$ranRelationships -and !$ranData) {
         Write-Host "No test files found, skipping..."
         return
     }

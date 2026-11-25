@@ -28,6 +28,7 @@
     # Functions to export from this module
     FunctionsToExport = @(
         'pbi-search'
+        'pbi-addroles'
         'pbi-rip'
         'pbi-ripandcommit'
         'pbi-reconstruct'
@@ -41,6 +42,11 @@
         'pbip'
         'pbi-publish'
         'pbi-refresh'
+        'pbi-publishandrefresh'
+        'pbi-publishrefreshtest'
+        'pbi-ripandcommittest'
+        'pbi-download'
+        'pbi-structure'
         'pbi-setup'
         'pbi-watch'
         'watch'
@@ -52,6 +58,8 @@
         'pbip-init'
         'pbip-renamePages'
         'pbi-test'
+        'pbi-todo'
+        'pbi-peek'
     )
 
     # Cmdlets to export from this module
@@ -61,7 +69,7 @@
     VariablesToExport = @()
 
     # Aliases to export from this module
-    AliasesToExport = @()
+    AliasesToExport = @('pnr', 'pnrt', 'rnct')
 
     # Private data to pass to the module specified in RootModule/ModuleToProcess
     PrivateData = @{

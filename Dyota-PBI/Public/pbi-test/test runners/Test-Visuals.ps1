@@ -33,6 +33,22 @@ function Test-Visuals {
                 return
             }
     
+            # page-wide test: target is each page's page.json; $pagePath is the page folder
+            if ($_.scope -eq 'page') {
+                $coordinates | ForEach-Object {
+                    $page = $_.page.id
+                    $pageName = $_.page.name
+                    $pagePath = (Resolve-Path ".\*.Report\definition\pages\$page" -ErrorAction SilentlyContinue).Path
+                    if (!$pagePath) {
+                        Write-SpectreHost "[red]page $pageName not found[/]"
+                        return
+                    }
+                    Print-Verbose "Checking page [yellow]$pageName[/]"
+                    Invoke-Assertions $assertions (Read-Json "$pagePath\page.json") $testName 'page' $page $pageName $null $null $null
+                }
+                return
+            }
+
             $coordinates |
                 ForEach-Object {
                     # one page
